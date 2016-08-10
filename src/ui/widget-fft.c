@@ -223,10 +223,12 @@ widget_fft_read_data(struct radio *r, struct sample *in_buf, size_t size) {
 
     for (to_ignore = ignored_size; to_ignore != 0; to_ignore -= ret) {
 	/*
-	 * Ignore read() return value because some radios (rtlsdr at
-	 * least) refuse short reads.
+	 * Ignore read() errors because some radios (rtlsdr at least)
+	 * refuse short reads.
 	 */
-	r->m->read(r, in_buf, to_ignore > size? size : to_ignore);
+	ret = r->m->read(r, in_buf, to_ignore > size? size : to_ignore);
+	if (ret == -1)
+	    break;
     }
 
     for (to_read = size; to_read != 0; to_read -= ret) {
