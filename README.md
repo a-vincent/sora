@@ -7,7 +7,7 @@ feature is the ease with which you can travel the spectrum in GUI mode.
 It is meant as a personal playground to play with radio signals, and normal
 usage includes modifying and recompiling the code.
 
-Patches are more welcome than complaints about user-unfriendliness.
+Pull requests are welcome.
 
 # Compilation
 
@@ -72,7 +72,7 @@ Other options
 
     $ sora --hackrf -f 100M -s 20M --gui
 
-    $ sora --uhd --uhd-addr addr=192.168.10.2 --uhd-ant TX/RX -f 100M -s 40M --gui
+    $ sora --uhd --uhd-addr addr=192.168.10.2 --uhd-ant TX/RX -f 100M -s 25M --gui
 
     $ rtl_sdr -f 1090e6 -s 2e6 - | sora --adsb-decode --adsb-from-raw
 
