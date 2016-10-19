@@ -21,9 +21,9 @@ uhd_wrapper_open(const char *args, const char *spec, const char *ant) {
     try {
 	u->musrp = uhd::usrp::multi_usrp::make(addr);
     } catch (...) {
-	u->musrp = NULL;
+	u->musrp = uhd::usrp::multi_usrp::sptr();
     }
-    if (u->musrp == NULL) {
+    if (u->musrp == uhd::usrp::multi_usrp::sptr()) {
 	delete u;
 	return NULL;
     }
