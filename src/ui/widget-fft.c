@@ -246,6 +246,7 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
     cairo_t *cr = NULL;
     unsigned int x;
     unsigned int height = widget->allocation.height;
+    unsigned int width = widget->allocation.width;
     cairo_text_extents_t extent;
     unsigned int bottom;
 
@@ -265,7 +266,7 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
     cairo_text_extents(cr, ".0123456789KMG", &extent);
     bottom = height - extent.height * 2 - 10 + 0.5;
     cairo_move_to(cr, 0, bottom);
-    cairo_line_to(cr, widget->allocation.width, bottom);
+    cairo_line_to(cr, width, bottom);
 
     for (unsigned int i = 0; i < w->tick_number; i++)
 	widget_fft_draw_freq_tick(w, cr, bottom,
@@ -279,6 +280,7 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
     for (x = 0; x < DEFAULT_FFT_SIZE; x++) {
 	int i = (x + (DEFAULT_FFT_SIZE / 2)) % DEFAULT_FFT_SIZE;
 	double new_y = cabs(w->out_buf[i]);
+	double new_x = (double) x * width / DEFAULT_FFT_SIZE;
 
 	if (w->cumulate)
 	    w->max_buf[i] += new_y;
@@ -288,9 +290,9 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
 	new_y *= w->scale;
 
 	if (x == 0)
-	    cairo_move_to(cr, x, bottom - new_y - 1);
+	    cairo_move_to(cr, new_x, bottom - new_y - 1);
 	else
-	    cairo_line_to(cr, x, bottom - new_y - 1);
+	    cairo_line_to(cr, new_x, bottom - new_y - 1);
     }
 
     if (w->cumulate) {
@@ -312,10 +314,12 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
 
     for (x = 0; x < DEFAULT_FFT_SIZE; x++) {
 	int i = (x + (DEFAULT_FFT_SIZE / 2)) % DEFAULT_FFT_SIZE;
+	double new_x = (double) x * width / DEFAULT_FFT_SIZE;
+
 	if (x == 0)
-	    cairo_move_to(cr, x, bottom - w->max_buf[i] * w->scale - 1);
+	    cairo_move_to(cr, new_x, bottom - w->max_buf[i] * w->scale - 1);
 	else
-	    cairo_line_to(cr, x, bottom - w->max_buf[i] * w->scale - 1);
+	    cairo_line_to(cr, new_x, bottom - w->max_buf[i] * w->scale - 1);
     }
 
     cairo_stroke(cr);
