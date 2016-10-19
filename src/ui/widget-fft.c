@@ -295,6 +295,8 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
 	    cairo_line_to(cr, new_x, bottom - new_y - 1);
     }
 
+    cairo_stroke(cr);
+
     if (w->cumulate) {
 	double min = w->max_buf[0];
 	for (x = 0; x < DEFAULT_FFT_SIZE; x++) {
@@ -307,8 +309,6 @@ widget_fft_draw_event(GtkWidget *widget, GdkEventExpose *event, gpointer aux) {
 	    w->max_buf[i] -= min;
 	}
     }
-
-    cairo_stroke(cr);
 
     cairo_set_source_rgb(cr, 1, 0, 0);
 
