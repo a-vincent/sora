@@ -65,6 +65,7 @@ Other options
  * 'a' makes all signal values fit the window
  * 'r' resets the peak line
  * 'c' toggles cumulation mode
+ * 'p' prints 10 highest peaks on stdout
 
 # Examples
 

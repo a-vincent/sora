@@ -6,6 +6,7 @@
 #include <fftw3.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
+#include <stdlib.h>
 
 #include <radio/radio.h>
 #include <ui/widget.h>
@@ -13,6 +14,7 @@
 
 #define DEFAULT_FFT_SIZE 1024
 #define REFRESH_TIME_MS 20		// 20 ms = 50Hz
+#define MAX_PEAKS 10
 
 struct widget_fft {
     struct widget widget;
@@ -25,8 +27,10 @@ struct widget_fft {
     t_frequency tick_first;
     t_frequency tick_step;
     unsigned int tick_number;
+    t_frequency freq_center;
     t_frequency freq_min;
     t_frequency freq_max;
+    unsigned long sample_rate;
     int cumulate;
 };
 
@@ -130,8 +134,6 @@ widget_fft_compute_auto_scale(struct widget_fft *w) {
 static gboolean
 widget_fft_configure_event(GtkWidget *widget, GdkEvent *event, gpointer aux) {
     struct widget_fft *w = (struct widget_fft *) aux;
-    t_frequency fcenter = 0;
-    unsigned long srate = 0;
     cairo_t *cr = NULL;
     cairo_text_extents_t freq_extents;
     unsigned long per_freq_room;
@@ -139,14 +141,16 @@ widget_fft_configure_event(GtkWidget *widget, GdkEvent *event, gpointer aux) {
     unsigned int nb_ticks;
     unsigned long prec;
 
-    if (w->radio->m->get_frequency(w->radio, &fcenter) == -1)
-	fcenter = 0;
+    if (w->radio->m->get_frequency(w->radio, &w->freq_center) == -1)
+	w->freq_center = 0;
 
-    if (w->radio->m->get_sample_rate(w->radio, &srate) == -1)
+    if (w->radio->m->get_sample_rate(w->radio, &w->sample_rate) == -1) {
+	w->sample_rate = 1;
 	goto err;
+    }
 
-    w->freq_min = fcenter - srate / 2;
-    w->freq_max = fcenter + srate / 2;
+    w->freq_min = w->freq_center - w->sample_rate / 2;
+    w->freq_max = w->freq_center + w->sample_rate / 2;
 
     cr = gdk_cairo_create(widget->window);
     cairo_text_extents(cr, "9999999999", &freq_extents);
@@ -158,18 +162,19 @@ widget_fft_configure_event(GtkWidget *widget, GdkEvent *event, gpointer aux) {
     if (nb_ticks == 0)
 	goto err;
 
-    prec = pow(10, (int) round(log10(srate / nb_ticks)));
-    w->tick_first = (fcenter - srate / 2 + prec - 1) / prec * prec;
+    prec = pow(10, (int) round(log10(w->sample_rate / nb_ticks)));
+    w->tick_first =
+	(w->freq_center - w->sample_rate / 2 + prec - 1) / prec * prec;
     w->tick_step = prec;
     w->tick_number = (w->freq_max - w->tick_first) / w->tick_step + 1;
 
     if (0) {
 err:
-	w->tick_first = fcenter;
+	w->tick_first = w->freq_center;
 	w->tick_step = 0;
 	w->tick_number = 1;
-	w->freq_min = fcenter - srate / 2;
-	w->freq_max = fcenter + srate / 2;
+	w->freq_min = w->freq_center - w->sample_rate / 2;
+	w->freq_max = w->freq_center + w->sample_rate / 2;
     }
 
     if (cr != NULL)
@@ -202,6 +207,49 @@ widget_fft_draw_freq_tick(struct widget_fft *w, cairo_t *cr,
     cairo_show_text(cr, text);
 
     memory_free(text);
+}
+
+struct peak {
+    double power;
+    int bin;
+};
+
+static int
+widget_fft_peaks_compare(const void *a1, const void *a2) {
+    const struct peak *p1 = a1;
+    const struct peak *p2 = a2;
+    double diff = p2->power - p1->power;
+
+    return diff < 0? -1 : (diff > 0? 1 : 0);
+}
+
+static void
+widget_fft_print_peaks(struct widget_fft *w) {
+    int i;
+    struct peak peaks[DEFAULT_FFT_SIZE];
+
+    printf("\n");
+
+    for (i = 1; i < DEFAULT_FFT_SIZE; i++) {
+	peaks[i-1].power = cabs(w->max_buf[i]);
+	peaks[i-1].bin = i;
+    }
+
+    qsort(peaks, DEFAULT_FFT_SIZE - 1, sizeof peaks[0],
+	widget_fft_peaks_compare);
+
+    for (i = 0; i < MAX_PEAKS; i++) {
+	char *freq;
+	int bin = peaks[i].bin;
+
+	if (bin >= DEFAULT_FFT_SIZE / 2)
+	    bin -= DEFAULT_FFT_SIZE;
+
+	freq = frequency_human_print(w->freq_center +
+		bin * (1. * w->freq_max - w->freq_min) / DEFAULT_FFT_SIZE);
+	printf("Peak %2d: %s (%g)\n", i + 1, freq, peaks[i].power);
+	memory_free(freq);
+    }
 }
 
 static int
@@ -359,11 +407,16 @@ widget_fft_key_press_event(GtkWidget *widget, GdkEventKey *event,
 	w->radio->m->set_frequency(w->radio, fcenter + offset);
 	break;
 
-    case GDK_KEY_r:
-	break;
-
     case GDK_KEY_c:
 	w->cumulate = !w->cumulate;
+	break;
+
+    case GDK_KEY_p:
+	widget_fft_print_peaks(w);
+	need_refresh = 0;
+	break;
+
+    case GDK_KEY_r:
 	break;
 
     default:
