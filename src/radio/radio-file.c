@@ -36,11 +36,15 @@ struct radio *
 radio_file_open(const char *name, int encoding) {
     struct radio_file *fr = memory_alloc(sizeof *fr);
 
-    fr->file = fopen(name, "rb");
-    if (fr == NULL) {
-	perror(name);
-	memory_free(fr);
-	return NULL;
+    if (strcmp(name, "-") == 0)
+	fr->file = stdin;
+    else {
+	fr->file = fopen(name, "rb");
+	if (fr->file == NULL) {
+	    perror(name);
+	    memory_free(fr);
+	    return NULL;
+	}
     }
 
     fr->freq = 0;
