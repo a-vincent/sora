@@ -120,7 +120,7 @@ radio_file_read(struct radio *r, struct sample *buf, size_t len) {
     }
 
     nread = fread(buf, bytes_per_sample, len, fr->file);
-    if (nread < bytes_per_sample)
+    if (nread < 1)
 	return 0;
 
     for (i = nread - 1; i >= 0; i--) {
