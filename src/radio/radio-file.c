@@ -143,7 +143,7 @@ radio_file_read(struct radio *r, struct sample *buf, size_t len) {
 	    buf[i].v = (buf_u8[i] - 128.0) / 128.0;
 	    break;
 	case RADIO_FILE_ENCODING_S16:
-	    buf[i].v = buf_s16[2] / 32768.0;
+	    buf[i].v = buf_s16[i] / 32768.0;
 	    break;
 	}
     }
