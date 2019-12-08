@@ -15,6 +15,7 @@
 #include <radio/hackrf.h>
 #include <radio/rtlsdr.h>
 #include <radio/uhd.h>
+#include <radio/xtrx.h>
 #include <scan/scan-main-loop.h>
 #include <ui/gtk-ui.h>
 #include <ui/widget-fft.h>
@@ -49,6 +50,9 @@ int option_use_hackrf_one = 0;
 #ifdef HAVE_LIBRTLSDR
 int option_use_rtlsdr = 0;
 int option_rtlsdr_index = 0;
+#endif
+#ifdef HAVE_LIBXTRX
+int option_use_xtrx = 0;
 #endif
 #ifdef HAVE_UHD
 int option_use_uhd = 0;
@@ -98,6 +102,9 @@ struct option options[] = {
     { "uhd-spec", required_argument, NULL, OPTION_UHD_SPEC },
 #endif
     { "verbose", no_argument, NULL, 'v' },
+#ifdef HAVE_LIBXTRX
+    { "xtrx", no_argument, &option_use_xtrx, 1 },
+#endif
     { NULL, 0, NULL, 0 }
 };
 
@@ -332,6 +339,20 @@ main(int argc, char *argv[]) {
     }
 #endif
 
+#ifdef HAVE_LIBXTRX
+    if (option_use_xtrx) {
+	if (radio != NULL) {
+	    fprintf(stderr, "cannot use multiple radios\n");
+	    goto err;
+	}
+	radio = xtrx_radio_open();
+	if (radio == NULL) {
+	    fprintf(stderr, "can't open xtrx\n");
+	    goto err;
+	}
+    }
+#endif
+
 #ifdef HAVE_UHD
     if (option_use_uhd) {
 	if (radio != NULL) {
@@ -346,6 +367,20 @@ main(int argc, char *argv[]) {
 	}
     }
 #endif
+
+    if (option_do_set_sample_rate) {
+	if (radio == NULL) {
+	    fprintf(stderr, "can't set sample rate without radio\n");
+	    goto err;
+	}
+	if (radio->m->set_sample_rate(radio, current_sample_rate) == -1) {
+	    fprintf(stderr, "couldn't set sample rate\n");
+	    goto err;
+	}
+    } else {
+	fprintf(stderr, "setting the sample rate is mandatory\n");
+	goto err;
+    }
 
     if (option_do_set_frequency) {
 	if (radio == NULL) {
@@ -369,20 +404,6 @@ main(int argc, char *argv[]) {
 	    printf("Frequency: %s\n", f_pprint);
 	    memory_free(f_pprint);
 	}
-    }
-
-    if (option_do_set_sample_rate) {
-	if (radio == NULL) {
-	    fprintf(stderr, "can't set sample rate without radio\n");
-	    goto err;
-	}
-	if (radio->m->set_sample_rate(radio, current_sample_rate) == -1) {
-	    fprintf(stderr, "couldn't set sample rate\n");
-	    goto err;
-	}
-    } else {
-	fprintf(stderr, "setting the sample rate is mandatory\n");
-	goto err;
     }
 
 #if 0
