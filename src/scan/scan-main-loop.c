@@ -143,15 +143,12 @@ scan_main_loop(struct radio *r, double threshold_db) {
     }
 
 finish:
-	;
-
-    if (0) {
+    ;
 err:
-	if (fft_plan != NULL)
-	    fftw_destroy_plan(fft_plan);
-	if (out_buf != NULL)
-	    fftw_free(out_buf);
-	if (in_buf != NULL)
-	    fftw_free(in_buf);
-    }
+    if (fft_plan != NULL)
+	fftw_destroy_plan(fft_plan);
+    if (out_buf != NULL)
+	fftw_free(out_buf);
+    if (in_buf != NULL)
+	fftw_free(in_buf);
 }
