@@ -17,6 +17,7 @@
 #include <radio/uhd.h>
 #include <radio/xtrx.h>
 #include <scan/scan-main-loop.h>
+#include <signal/spectrum.h>
 #include <ui/gtk-ui.h>
 #include <ui/widget-fft.h>
 #include <util/hash.h>
@@ -465,7 +466,7 @@ main(int argc, char *argv[]) {
 
     if (option_save_spectrum != NULL) {
 	return save_spectrum_main_loop(radio) == -1?
-		RETURN_FAILURE : RETURN_SUCCESS;
+		EXIT_FAILURE : EXIT_SUCCESS;
     }
 
     if (option_do_scan) {
