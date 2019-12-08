@@ -43,19 +43,18 @@ rtlsdr_radio_open(int index) {
 	return NULL;
     }
 
-    if (rtlsdr_set_agc_mode(rs->dev, 1) != 0)
-	fprintf(stderr, "rtlsdr_set_agc_mode() failed\n");
-
 #if 0
     if (rtlsdr_set_tuner_gain_mode(rs->dev, 0) != 0)
 	fprintf(stderr, "rtlsdr_set_tuner_gain_mode() failed\n");
+    if (rtlsdr_set_agc_mode(rs->dev, 1) != 0)
+	fprintf(stderr, "rtlsdr_set_agc_mode() failed\n");
 #else
+    if (rtlsdr_set_agc_mode(rs->dev, 0) != 0)
+	fprintf(stderr, "rtlsdr_set_agc_mode() failed\n");
     if (rtlsdr_set_tuner_gain_mode(rs->dev, 1) != 0)
 	fprintf(stderr, "rtlsdr_set_tuner_gain_mode() failed\n");
     if (rtlsdr_set_tuner_gain(rs->dev, 490) != 0)
 	fprintf(stderr, "rtlsdr_set_tuner_gain() failed\n");
-    if (rtlsdr_set_agc_mode(rs->dev, 0) != 0)
-	fprintf(stderr, "rtlsdr_set_agc_mode() failed\n");
 #endif
 
     if (rtlsdr_reset_buffer(rs->dev) != 0)
