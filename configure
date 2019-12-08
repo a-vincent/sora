@@ -316,8 +316,8 @@ echo $have_librtlsdr
 printf 'Checking for libxtrx... '
 if pkg-config libxtrx; then
 	have_libxtrx=yes
-	cppflags="${cppflags} -DHAVE_LIBXTRX `pkg-config --cflags libxtrx`"
-	ldflags="${ldflags} `pkg-config --libs libxtrx`"
+	cppflags="${cppflags} -pthread -DHAVE_LIBXTRX `pkg-config --cflags libxtrx`"
+	ldflags="${ldflags} -pthread `pkg-config --libs libxtrx`"
 	rel_source_files="${rel_source_files} radio/xtrx.c"
 else
 	have_libxtrx=no
