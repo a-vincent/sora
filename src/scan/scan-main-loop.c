@@ -78,6 +78,8 @@ scan_main_loop(struct radio *r, double threshold_db) {
 	while (to_read != 0) {
 	    ret = r->m->read(r,
 		(struct sample *) in_buf + DEFAULT_FFT_SIZE - to_read, to_read);
+	    if (ret == 0)
+		goto finish;
 	    if (ret == -1)
 		goto err;
 	    to_read -= ret;
@@ -139,6 +141,9 @@ scan_main_loop(struct radio *r, double threshold_db) {
 	if (learning)
 	    learning--;
     }
+
+finish:
+	;
 
     if (0) {
 err:
