@@ -59,7 +59,7 @@ hackrf_radio_open(void) {
 
     hackrf_set_amp_enable(hrf->dev, 1);
     hackrf_set_lna_gain(hrf->dev, 32);
-    hackrf_set_vga_gain(hrf->dev, 10);
+    hackrf_set_vga_gain(hrf->dev, 20);
 
     radio_init(&hrf->radio, &hackrf_radio_methods);
 
