@@ -21,16 +21,14 @@
 #include <util/hash.h>
 #include <util/memory.h>
 
-#define OPTION_FCDAUDIO		256
-#define OPTION_FCDHID		257
-#define OPTION_RTLSDR_INDEX	258
-#define OPTION_UHD_ADDR		259
-#define OPTION_UHD_ANT		260
-#define OPTION_UHD_SPEC		261
-#define OPTION_FILE_NAME	262
-#define OPTION_FILE_ENCODING	263
-#define OPTION_SQUELCH		264
-#define OPTION_ALSA_NAME	265
+enum {
+    OPTION_ALSA_NAME = 256,
+    OPTION_FCDAUDIO, OPTION_FCDHID,
+    OPTION_FILE_ENCODING, OPTION_FILE_NAME,
+    OPTION_RTLSDR_INDEX,
+    OPTION_SQUELCH,
+    OPTION_UHD_ADDR, OPTION_UHD_ANT, OPTION_UHD_SPEC,
+};
 
 const char *program_name;
 int option_do_set_frequency = 0;
