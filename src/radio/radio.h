@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 struct radio_methods;
+struct spectrum;
 
 struct radio {
     struct radio_methods *m;
@@ -20,6 +21,7 @@ struct radio_methods {
     int (*set_sample_rate)(struct radio *, unsigned long);
     int (*get_sample_rate)(struct radio *, unsigned long *);
     ssize_t (*read)(struct radio *, struct sample *, size_t);
+    int (*read_spectrum)(struct radio *, struct spectrum *);
     off_t (*get_file_position)(struct radio *);
     void (*close)(struct radio *);
 };

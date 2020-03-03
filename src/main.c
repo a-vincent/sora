@@ -26,20 +26,32 @@ enum {
     OPTION_ALSA_NAME = 256,
     OPTION_FCDAUDIO, OPTION_FCDHID,
     OPTION_FILE_ENCODING, OPTION_FILE_NAME,
+    OPTION_NBINS,
     OPTION_RTLSDR_INDEX,
+    OPTION_SAVE_SPECTRUM,
+    OPTION_SPAN,
+    OPTION_SPECTRUM_ACCUM,
     OPTION_SQUELCH,
     OPTION_UHD_ADDR, OPTION_UHD_ANT, OPTION_UHD_SPEC,
+};
+
+enum {
+    SPECTRUM_ACCUM_AVERAGE,
+    SPECTRUM_ACCUM_MAX,
 };
 
 const char *program_name;
 int option_do_set_frequency = 0;
 int option_gui = 0;
+int option_number_of_bins = 0;
+int option_span_is_set = 0;
 int option_quiet = 0;
 int option_verbose = 0;
 int option_adsb_decode = 0;
 int option_adsb_from_raw = 0;
 int option_adsb_to_bitstring = 0;
 int option_do_set_sample_rate = 0;
+const char *option_save_spectrum = NULL;
 int option_do_scan = 0;
 double option_squelch_db = 10;
 const char *option_file_name = NULL;
@@ -51,6 +63,7 @@ int option_use_hackrf_one = 0;
 int option_use_rtlsdr = 0;
 int option_rtlsdr_index = 0;
 #endif
+int option_spectrum_accum = SPECTRUM_ACCUM_MAX;
 #ifdef HAVE_LIBXTRX
 int option_use_xtrx = 0;
 #endif
@@ -69,6 +82,7 @@ static char *option_fcdaudio_path = NULL;
 static char *option_fcdhid_path = NULL;
 static t_frequency current_frequency;		/* in Hz */
 static t_frequency current_sample_rate;		/* in Hz */
+static t_frequency current_span;		/* in Hz */
 
 struct option options[] = {
     { "adsb-decode", no_argument, NULL, 'd' },
@@ -87,13 +101,17 @@ struct option options[] = {
 #ifdef HAVE_LIBHACKRF
     { "hackrf-one", no_argument, &option_use_hackrf_one, 1 },
 #endif
+    { "nbins", required_argument, NULL, OPTION_NBINS },
     { "quiet", no_argument, NULL, 'q' },
 #ifdef HAVE_LIBRTLSDR
     { "rtlsdr", no_argument, &option_use_rtlsdr, 1 },
     { "rtlsdr-index", required_argument, NULL, OPTION_RTLSDR_INDEX },
 #endif
     { "sample-rate", required_argument, NULL, 's' },
+    { "save-spectrum", required_argument, NULL, OPTION_SAVE_SPECTRUM },
     { "scan", no_argument, &option_do_scan, 1 },
+    { "span", required_argument, NULL, OPTION_SPAN },
+    { "spectrum-accumulation", required_argument, NULL, OPTION_SPECTRUM_ACCUM },
     { "squelch", required_argument, NULL, OPTION_SQUELCH },
 #ifdef HAVE_UHD
     { "uhd", no_argument, &option_use_uhd, 1 },
@@ -229,6 +247,9 @@ main(int argc, char *argv[]) {
 	    else
 		fprintf(stderr, "Unknown encoding %s\n", optarg);
 	    break;
+	case OPTION_NBINS:
+	    option_number_of_bins = atoi(optarg);
+	    break;
 	case OPTION_RTLSDR_INDEX:
 #ifdef HAVE_LIBRTLSDR
 	    option_rtlsdr_index = atoi(optarg);
@@ -248,6 +269,27 @@ main(int argc, char *argv[]) {
 #ifdef HAVE_UHD
 	    option_uhd_spec = optarg;
 #endif
+	    break;
+	case OPTION_SAVE_SPECTRUM:
+	    option_save_spectrum = optarg;
+	    break;
+	case OPTION_SPAN:
+	    if (!frequency_parse(optarg, &current_span)) {
+		fprintf(stderr, "'%s' couldn't be parsed as a frequency\n",
+			optarg);
+		goto err;
+	    }
+	    option_span_is_set = 1;
+	    break;
+	case OPTION_SPECTRUM_ACCUM:
+	    if (strcmp(optarg, "max") == 0)
+		option_spectrum_accum = SPECTRUM_ACCUM_MAX;
+	    else if (strcmp(optarg, "average") == 0)
+		option_spectrum_accum = SPECTRUM_ACCUM_AVERAGE;
+	    else
+		fprintf(stderr, "unknown accumulation method '%s'.\n"
+			"Valid methods are 'average' and 'max' (default).\n",
+			optarg);
 	    break;
 	case OPTION_SQUELCH:
 	    option_squelch_db = atof(optarg);
@@ -421,6 +463,11 @@ main(int argc, char *argv[]) {
     }
 #endif
 
+    if (option_save_spectrum != NULL) {
+	return save_spectrum_main_loop(radio) == -1?
+		RETURN_FAILURE : RETURN_SUCCESS;
+    }
+
     if (option_do_scan) {
 	scan_main_loop(radio, option_squelch_db);
 	return EXIT_SUCCESS;
@@ -445,3 +492,13 @@ err:
     return status;
 }
 
+static int
+save_spectrum_main_loop(struct radio *r) {
+    struct spectrum *spectrum;
+    FILE *out_file;
+
+    spectrum = spectrum_new(current_frequency - current_span / 2.,
+	current_frequency + current_span / 2., option_number_of_bins);
+
+    return 0;
+}

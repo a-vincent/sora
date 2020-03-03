@@ -10,6 +10,7 @@ static int radio_dummy_get_frequency(struct radio *, t_frequency *);
 static int radio_dummy_set_sample_rate(struct radio *, unsigned long);
 static int radio_dummy_get_sample_rate(struct radio *, unsigned long *);
 static ssize_t radio_dummy_read(struct radio *, struct sample *, size_t);
+static int radio_dummy_read_spectrum(struct radio *, struct spectrum *);
 static off_t radio_dummy_get_file_position(struct radio *);
 static void radio_dummy_close(struct radio *);
 
@@ -37,6 +38,8 @@ radio_methods_fill_empty_slots(struct radio_methods *m) {
 	m->get_sample_rate = radio_dummy_get_sample_rate;
     if (m->read == NULL)
 	m->read = radio_dummy_read;
+    if (m->read_spectrum == NULL)
+	m->read_spectrum = radio_dummy_read_spectrum;
     if (m->get_file_position == NULL)
 	m->get_file_position = radio_dummy_get_file_position;
     if (m->close == NULL)
@@ -70,6 +73,12 @@ radio_dummy_get_sample_rate(struct radio *r, unsigned long *sp) {
 static ssize_t
 radio_dummy_read(struct radio *r, struct sample *buf, size_t len) {
     (void) r; (void) buf; (void) len;
+    return -1;
+}
+
+static int
+radio_dummy_read_spectrum(struct radio *r, struct spectrum *s) {
+    (void) r; (void) s;
     return -1;
 }
 

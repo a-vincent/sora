@@ -8,7 +8,7 @@ rel_source_files="\
 	ads-b/planes-main-loop.c \
 	common/frequency.c \
 	radio/radio.c radio/fcdhid.c radio/radio-file.c \
-	scan/scan-main-loop.c \
+	scan/scan-main-loop.c signal/spectrum.c \
 	util/array.c util/bitvector.c util/debug.c util/exception.c \
 	util/graph.c util/hash.c util/list.c util/memory.c util/message.c \
 	util/pool.c util/queue.c util/simple-math.c util/string.c util/timer.c"
