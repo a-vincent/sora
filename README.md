@@ -36,6 +36,7 @@ Radio front-end
       --hackrf-one           use HackRF One frontend
       --rtlsdr               use rtl-sdr frontend
       --uhd                  use UHD frontend
+      --xtrx                 use XTRX frontend
 
 Basic mandatory options
   -f, --frequency=FREQ       set tuner frequency to FREQ
